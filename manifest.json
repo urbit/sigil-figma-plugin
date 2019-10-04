@@ -1,0 +1,7 @@
+{
+  "name": "sigils",
+  "id": "755929849994721127",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "dist/ui.html"
+}
