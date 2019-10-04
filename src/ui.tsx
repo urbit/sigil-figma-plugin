@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { sigil, reactRenderer } from 'urbit-sigil-js'
+import ob from 'urbit-ob'
 import './ui.css'
 
 import {
@@ -11,38 +12,41 @@ import {
 
 declare function require(path: string): any
 
-interface MyProps {}
+interface ComponentProps {}
 
-interface MyState {
+interface ComponentState {
   size:number,
   patp:string,
   classOf:string,
+  colors:string[],
+  err: {
+    source:string,
+    message:string,
+  },
 }
 
-
-class App extends React.Component<MyProps, MyState> {
+class App extends React.Component<ComponentProps, ComponentState> {
   constructor(props) {
   super(props)
   this.state = {
     size: 256,
-    patp: 'ridlur-figbud',
+    patp: '~ridlur-figbud',
     classOf: SHIP_TYPES.PLANET,
+    colors: ['#FFF', '#000'],
+    err: {
+      source: '',
+      message: '',
+    },
   };
 };
-
-  textbox: HTMLInputElement
-
-  sizeRef = (element: HTMLInputElement) => {
-    if (element) element.value = `${this.state.size}`
-    this.textbox = element
-  }
 
   onCreate = () => {
     parent.postMessage({
       pluginMessage: {
         type: 'create-sigil',
         patp: this.state.patp,
-        size: this.state.size
+        size: this.state.size,
+        colors: this.state.colors,
       }
     }, '*')
   }
@@ -67,34 +71,103 @@ class App extends React.Component<MyProps, MyState> {
     })
   }
 
+  onInvert = () => {
+    this.setState({
+      colors: this.state.colors.reverse()
+    })
+  }
+
+  onInputChange = (
+    key:'patp'|'size'|'classOf'|'margin',
+    e:React.ChangeEvent<HTMLInputElement>
+  ) => {
+      if (key === 'margin' && e.target.value === '') {
+        // welp
+        e.target.value = undefined
+      }
+      e.preventDefault()
+      this.setState({ [key]: e.target.value } as Pick<ComponentState, any>)
+  }
+
   render() {
 
-    return <div>
-      <p>Size: <input ref={this.sizeRef} /></p>
+    const _sigil = ob.isValidPatp(this.state.patp)
+      ? sigil({
+        patp:this.state.patp,
+        renderer:reactRenderer,
+        size:128,
+        colors:this.state.colors
+      })
+      : <div
+        style={{
+          width:'128px',
+          height:'128px',
+          backgroundColor:'black'
+        }}/>
 
+    return <div style={{ display:'flex',flexDirection:'column' }}>
+    <div style={{border:'1px solid silver'}}>
       {
-        sigil({
-          patp:this.state.patp,
-          renderer:reactRenderer,
-          size:128
-        })
+        _sigil
       }
+    </div>
+    <div className='mv1'>
+      Ship:
+      <input
+        onChange={(e) => this.onInputChange('patp', e)}
+        value={this.state.patp} />
+    </div>
 
-      <button id="random" onClick={this.onRandomShip}>Random</button>
+    <div className='mv1'>
+      Size:
+      <input
+        onChange={(e) => this.onInputChange('size', e)}
+        value={this.state.size}/>
+    </div>
 
-      <button id="setGalaxy" onClick={() =>
-        this.onSetClassOf(SHIP_TYPES.GALAXY)}>Galaxy</button>
+      <select
+        onChange={(e) => this.onSetClassOf(e.target.value)}
+        name="classSelection"
+        className="select-menu mv1">
+        <option
+          value={SHIP_TYPES.PLANET}
+          selected={this.state.classOf === SHIP_TYPES.PLANET}>
+          Planet
+        </option>
+        <option
+          value={SHIP_TYPES.STAR}
+          selected={this.state.classOf === SHIP_TYPES.STAR}>
+          Star
+        </option>
+        <option
+          value={SHIP_TYPES.GALAXY}
+          selected={this.state.classOf === SHIP_TYPES.GALAXY}>
+          Galaxy
+        </option>
+      </select>
 
-      <button id="setStar" onClick={() =>
-        this.onSetClassOf(SHIP_TYPES.STAR)}>Star</button>
+      <button
+        className='mv1'
+        id="invert"
+        onClick={this.onInvert}>
+        Invert Color
+      </button>
 
-      <button id="setPlanet" onClick={() =>
-        this.onSetClassOf(SHIP_TYPES.PLANET)}>Planet</button>
+      <button
+        className='mv1'
+        id="random"
+        onClick={this.onRandomShip}>
+        Random
+      </button>
 
-      <button id="create" onClick={this.onCreate}>Create</button>
+      <button
+        className='mv1'
+        id="create"
+        onClick={this.onCreate}>
+        Insert
+      </button>
 
-      <button onClick={this.onCancel}>Cancel</button>
-
+      <button className='mv1' onClick={this.onCancel}>Cancel</button>
     </div>
   }
 }

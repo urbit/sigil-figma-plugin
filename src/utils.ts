@@ -29,7 +29,7 @@ const randShip = (k:string) => {
 }
 
 const randomShip = (classOf:string) => {
-  return compose(noSig, ob.patp, randShip)(classOf);
+  return compose(ob.patp, randShip)(classOf);
 };
 
 export {
