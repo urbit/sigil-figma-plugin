@@ -3,6 +3,7 @@
     "baseUrl": ".",
     "paths": { "*": ["types/*"] },
     "target": "es6",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "jsx": "react"
   }
 }
