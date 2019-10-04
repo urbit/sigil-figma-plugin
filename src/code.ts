@@ -1,6 +1,6 @@
 import { sigil, stringRenderer } from 'urbit-sigil-js'
 
-figma.showUI(__html__, {width: 170, height: 390})
+figma.showUI(__html__, {width: 240, height: 490})
 
 figma.ui.onmessage = msg => {
   if (msg.type === 'create-sigil') {

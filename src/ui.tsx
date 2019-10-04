@@ -1,7 +1,10 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import Dropdown from 'react-dropdown'
+
 import { sigil, reactRenderer } from 'urbit-sigil-js'
 import ob from 'urbit-ob'
+import './figma-plugin-ds.css'
 import './ui.css'
 
 import {
@@ -19,6 +22,7 @@ interface ComponentState {
   patp:string,
   classOf:string,
   colors:string[],
+  inverted:boolean,
   err: {
     source:string,
     message:string,
@@ -33,6 +37,7 @@ class App extends React.Component<ComponentProps, ComponentState> {
     patp: '~ridlur-figbud',
     classOf: SHIP_TYPES.PLANET,
     colors: ['#FFF', '#000'],
+    inverted:false,
     err: {
       source: '',
       message: '',
@@ -73,6 +78,7 @@ class App extends React.Component<ComponentProps, ComponentState> {
 
   onInvert = () => {
     this.setState({
+      inverted: !this.state.inverted,
       colors: this.state.colors.reverse()
     })
   }
@@ -81,15 +87,23 @@ class App extends React.Component<ComponentProps, ComponentState> {
     key:'patp'|'size'|'classOf'|'margin',
     e:React.ChangeEvent<HTMLInputElement>
   ) => {
-      if (key === 'margin' && e.target.value === '') {
-        // welp
-        e.target.value = undefined
-      }
       e.preventDefault()
       this.setState({ [key]: e.target.value } as Pick<ComponentState, any>)
   }
 
+  onSelect = (e) => {
+    this.setState({ classOf: e.value })
+  }
+
   render() {
+
+    const options = [
+      { value: SHIP_TYPES.PLANET, label: 'Planet' },
+      { value: SHIP_TYPES.STAR, label: 'Star', },
+      { value: SHIP_TYPES.GALAXY, label: 'Galaxy', },
+    ]
+
+    const defaultOption = options[0]
 
     const _sigil = ob.isValidPatp(this.state.patp)
       ? sigil({
@@ -106,68 +120,82 @@ class App extends React.Component<ComponentProps, ComponentState> {
         }}/>
 
     return <div style={{ display:'flex',flexDirection:'column' }}>
-    <div style={{border:'1px solid silver'}}>
+    <div style={{
+      borderRadius:'2px',
+      display:'flex',
+      justifyContent:'center',
+      backgroundColor:`${this.state.colors[0]}`,
+      border: '1px solid rgba(0, 0, 0, 0.1'
+    }}>
       {
         _sigil
       }
     </div>
-    <div className='mv1'>
-      Ship:
+    <div style={{display:'flex',alignItems:'center',position:'relative'}} className='mv1 input-wrapper'>
+      <div style={{position:'absolute',top:'9px',zIndex:99,marginLeft:'8px'}} className='mr1 silver'>Ship:</div>
       <input
+        className='input'
+        style={{flex:'1',paddingLeft:'40px'}}
         onChange={(e) => this.onInputChange('patp', e)}
         value={this.state.patp} />
+
+        <button
+          style={{
+            position:'absolute',
+            right:'8px',
+            zIndex:99,
+            backgroundColor:'transparent',
+            border:'0px solid rgba(0,0,0,0.0)',
+            padding:'0px',
+            outline:'none',
+            textDecoration:'underline'
+          }}
+          className='pointer'
+          id="random"
+          onClick={this.onRandomShip}>
+          Random
+        </button>
     </div>
 
-    <div className='mv1'>
-      Size:
+    <div style={{display:'flex',alignItems:'center',position:'relative'}} className='mv1 input-wrapper'>
+      <div style={{position:'absolute',top:'9px',zIndex:99,marginLeft:'8px'}} className='mr1 silver'>Size:</div>
       <input
+        className='input'
+        style={{flex:'1',paddingLeft:'40px'}}
         onChange={(e) => this.onInputChange('size', e)}
         value={this.state.size}/>
     </div>
 
-      <select
-        onChange={(e) => this.onSetClassOf(e.target.value)}
-        name="classSelection"
-        className="select-menu mv1">
-        <option
-          value={SHIP_TYPES.PLANET}
-          selected={this.state.classOf === SHIP_TYPES.PLANET}>
-          Planet
-        </option>
-        <option
-          value={SHIP_TYPES.STAR}
-          selected={this.state.classOf === SHIP_TYPES.STAR}>
-          Star
-        </option>
-        <option
-          value={SHIP_TYPES.GALAXY}
-          selected={this.state.classOf === SHIP_TYPES.GALAXY}>
-          Galaxy
-        </option>
-      </select>
+    <div className='mv1'>
+      <Dropdown
+        options={options}
+        onChange={this.onSelect}
+        value={this.state.classOf} />
+      </div>
 
       <button
-        className='mv1'
-        id="invert"
-        onClick={this.onInvert}>
-        Invert Color
+        onClick={this.onInvert}
+        style={{backgroundColor:'transparent',border:'0px solid rgba(0,0,0,0.0)',padding:'0px',outline:'none'}} className='checkbox mv1'>
+        <input
+          className='checkbox__box'
+          checked={this.state.inverted}
+          type="checkbox"/>
+        <label className="checkbox__label">Invert</label>
       </button>
 
-      <button
-        className='mv1'
-        id="random"
-        onClick={this.onRandomShip}>
-        Random
-      </button>
-
-      <button
-        className='mv1'
-        id="create"
-        onClick={this.onCreate}>
-        Insert
-      </button>
-
-      <button className='mv1' onClick={this.onCancel}>Cancel</button>
+      <div style={{ display:'flex', justifyContent:'space-between'}}>
+        <button
+          className='mv1 button button--secondary-destructive'
+          onClick={this.onCancel}>
+          Cancel
+        </button>
+        <button
+          className='mv1 button button--primary'
+          id="create"
+          onClick={this.onCreate}>
+          Insert
+        </button>
+      </div>
     </div>
   }
 }
