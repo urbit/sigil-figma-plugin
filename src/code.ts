@@ -11,6 +11,7 @@ figma.ui.onmessage = msg => {
       renderer: stringRenderer,
       size: msg.size,
       colors: msg.colors,
+      strokeScalingFunction: (size) => size < 48 ? 4 : 2
     }
 
     // Generate a figma node from a sigil SVG
@@ -22,6 +23,18 @@ figma.ui.onmessage = msg => {
 
     // Name the node after the patp
     node.name = msg.patp
+
+    // const _node = figma.flatten([node])
+
+    // const flatten = (node) => {
+    //   const newNode = flatten(node)
+    //   return {
+    //     ...newNode,
+    //     children: node.children.map(n => flatten(n))
+    //   }
+    // }
+    //
+    // const _node = flatten(node)
 
     // Add the node in the Figma canvas
     figma.currentPage.appendChild(node)
